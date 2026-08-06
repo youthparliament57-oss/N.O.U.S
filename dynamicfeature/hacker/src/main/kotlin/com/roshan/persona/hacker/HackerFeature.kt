@@ -80,9 +80,22 @@ class HackerFeature @Inject constructor() {
      * Show disclaimer dialog before first use.
      * Per ADR-0009: User must accept that tools are "for authorized security testing only".
      */
-    fun requireDisclaimerAccepted(): Boolean {
-        // TODO: Implement shared prefs check + dialog
-        return true
+    fun requireDisclaimerAccepted(activity: android.app.Activity): Boolean {
+        val prefs = activity.getSharedPreferences("hacker_prefs", android.content.Context.MODE_PRIVATE)
+        if (prefs.getBoolean("disclaimer_accepted", false)) {
+            return true
+        }
+
+        android.app.AlertDialog.Builder(activity)
+            .setTitle("Disclaimer")
+            .setMessage("These tools are for authorized security testing only.")
+            .setPositiveButton("Accept") { _, _ ->
+                prefs.edit().putBoolean("disclaimer_accepted", true).apply()
+            }
+            .setNegativeButton("Decline", null)
+            .show()
+
+        return false
     }
 }
 
