@@ -9,6 +9,8 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
     implementation(project(":core:common"))
 
     implementation("com.jakewharton.timber:timber:5.0.1")
