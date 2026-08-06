@@ -96,7 +96,7 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ~/.android/build-cache
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', **/gradle-wrapper.properties) }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
       
@@ -107,7 +107,7 @@ jobs:
             **/build/.externalNativeBuild
             **/build/obj
             **/build/local
-          key: ${{ runner.os }}-ndk-${{ hashFiles('**/CMakeLists.txt', **/build.gradle.kts') }}
+          key: ${{ runner.os }}-ndk-${{ hashFiles('**/CMakeLists.txt', '**/build.gradle.kts') }}
           restore-keys: |
             ${{ runner.os }}-ndc-
       
@@ -203,7 +203,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', **/gradle-wrapper.properties) }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
       
