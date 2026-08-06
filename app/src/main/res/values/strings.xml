@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NOUS</string>
+    <string name="app_tagline">The mind that perceives.</string>
+
+    <!-- Dynamic features -->
+    <string name="dynamic_feature_drone">Drone Control</string>
+    <string name="dynamic_feature_ar">AR Mode</string>
+    <string name="dynamic_feature_hacker">Hacker Toolkit</string>
+    <string name="dynamic_feature_voiceclone">Voice Cloning</string>
+    <!-- Initialization -->
+    <string name="booting_message">NOUS is booting…</string>
+    <string name="initializing_layers">Calibrating cognitive layers…</string>
+    <string name="loading_personas">Awakening personas…</string>
+
+    <!-- Permissions -->
+    <string name="permission_rationale_mic">Microphone access is required for voice commands and the wake word.</string>
+    <string name="permission_rationale_camera">Camera access is required for vision features (gesture control, AR, rPPG heart rate).</string>
+    <string name="permission_rationale_location">Location access enables location-based automations and ambient awareness.</string>
+    <string name="permission_rationale_contacts">Contacts access lets NOUS make calls and send messages on your behalf.</string>
+
+    <!-- Privacy -->
+    <string name="privacy_lockdown">Privacy mode is active — cloud, mic, camera, and location are disabled.</string>
+    <string name="privacy_dashboard">Privacy Dashboard</string>
+</resources>

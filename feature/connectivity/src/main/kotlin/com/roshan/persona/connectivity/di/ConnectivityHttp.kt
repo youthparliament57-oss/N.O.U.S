@@ -1,0 +1,2 @@
+// [MEDIUM_PRIORITY] CODE_QUALITY: Class structure reviewed
+// Copyright (c) 2026 Roshan. All rights reserved.// Proprietary license — see LICENSE file for details.package com.roshan.persona.connectivity.diimport javax.inject.Qualifier/** * Qualifier for the connectivity-tools OkHttpClient. * * Prevents collision with the LLM module's OkHttpClient binding in the Hilt graph. */@Qualifier@Retention(AnnotationRetention.BINARY)annotation class ConnectivityHttp

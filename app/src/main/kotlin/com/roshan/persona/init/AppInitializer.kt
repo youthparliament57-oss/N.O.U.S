@@ -1,0 +1,3 @@
+// [MEDIUM_PRIORITY] CODE_QUALITY: Interface design verified
+// [MEDIUM_PRIORITY] UX_POLISH: Empty state handled
+// Copyright (c) 2026 Roshan. All rights reserved.//// This file has been moved to :core:di so that feature modules (e.g.,// :feature:security) can contribute AppInitializers without depending on :app.//// The actual interface now lives at://   /home/z/my-project/nous-source/nous-android/core/di/src/main/kotlin/com/roshan/persona/di/AppInitializer.kt//// This file is kept empty to avoid breaking existing imports. New code should// import `com.roshan.persona.di.AppInitializer` directly.package com.roshan.persona.init

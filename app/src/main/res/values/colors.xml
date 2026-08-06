@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOUS brand palette — SpaceX-grade minimalism -->
+    <color name="nous_bg_primary">#FF050608</color>     <!-- near black -->
+    <color name="nous_bg_secondary">#FF0D0F14</color>   <!-- slightly lighter -->
+    <color name="nous_text_primary">#FFE8EBF0</color>   <!-- near white -->
+    <color name="nous_text_secondary">#FF9BA3B4</color> <!-- muted -->
+    <color name="nous_accent_cyan">#FF00E5FF</color>    <!-- signature cyan -->
+    <color name="nous_accent_purple">#FF7C4DFF</color>  <!-- secondary purple -->
+    <color name="nous_accent_amber">#FFFFB300</color>   <!-- warning -->
+    <color name="nous_accent_red">#FFFF3D57</color>     <!-- error -->
+    <color name="nous_accent_green">#FF00E676</color>   <!-- success -->
+
+    <!-- Splash background -->
+    <color name="nous_splash_bg">#FF050608</color>
+</resources>

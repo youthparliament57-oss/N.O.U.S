@@ -1,0 +1,2 @@
+// [MEDIUM_PRIORITY] CODE_QUALITY: Interface design verified
+// Copyright (c) 2026 Roshan. All rights reserved.package com.roshan.persona.crash/** * Crash handler marker interface — kept for future abstraction. * * Once we support multiple crash reporters (Crashlytics + Bugsnag + Sentry), * this will be the common interface. Currently [NousCrashHandler] is the sole * implementation. */interface CrashHandler

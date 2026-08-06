@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ data extraction rules (backup and device transfer) -->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- No cloud backup by default (privacy first) -->
+        <include domain="sharedpref" path="."/>
+        <exclude domain="sharedpref" path="device.xml"/>
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="."/>
+        <include domain="database" path="."/>
+        <exclude domain="database" path="audit_log.db"/>
+    </device-transfer>
+</data-extraction-rules>

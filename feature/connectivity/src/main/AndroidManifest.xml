@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ─── Permissions (Strategy §11.3, §11.5, §11.7) ─────────────────────── -->
+
+    <!-- READ/WRITE_CALL_LOG — CallLog queries + entry deletion (CallLogService). -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.WRITE_CALL_LOG" />
+
+    <!-- ANSWER_PHONE_CALLS (API 26+) — required by TelecomManager.acceptRingingCall
+         + endCall for the Active Call Bouncer (Strategy §11.3). -->
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+
+    <!-- READ_PHONE_STATE — required by TelecomManager + TelephonyManager.callState
+         (already declared in :app manifest, re-declared here so :feature:connectivity
+         can be consumed standalone by tests). -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- SEND_SMS + RECEIVE_SMS — SmsService + SmsEngine (already in :app, re-declared
+         for module standalone use). -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+
+    <!-- CALL_PHONE — AndroidCallService.placeCall (Intent.ACTION_CALL). -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- READ/WRITE_CONTACTS — ContactManager + ContactSearcher + ContactFtsSyncWorker. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
+    <!-- READ_CALENDAR — AutoReplyEngine.isInMeeting context (Strategy §11.4). -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+
+    <!-- RECORD_AUDIO — CallRecordingEngine + EmergencySOSEngine (audio recording). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- ACCESS_FINE/COARSE_LOCATION — EmergencySOSEngine location sharing. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- ACTIVITY_RECOGNITION — AutoReplyEngine driving detection (Strategy §11.4). -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+
+    <!-- RECEIVE_BOOT_COMPLETED — so SosPowerTapReceiver can re-register on reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- ─── Queries (Android 11+ package visibility) ────────────────────────
+         Without these, OutboundExecutor.isAppInstalled() returns false for
+         WhatsApp/Telegram/Signal even when they're installed (Strategy §11.2). -->
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+        <package android:name="org.telegram.messenger" />
+        <package android:name="org.thoughtcrime.securesms" />
+    </queries>
+
+    <application>
+
+        <!-- ─── NousNotificationListenerService ───────────────────────────────
+             Reads incoming WhatsApp/Telegram/Signal notifications, extracts
+             sender/body/timestamp, caches them in NotificationCache, and feeds
+             them to MessagingUnificationEngine.processIncomingNotification().
+             User must enable in Settings → Notification Access → NOUS. -->
+        <service
+            android:name="com.roshan.persona.connectivity.notification.NousNotificationListenerService"
+            android:label="NOUS Notification Reader"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+
+        </service>
+
+        <!-- ─── SosActivity — red-screen emergency overlay (Strategy §11.6) ─── -->
+        <activity
+            android:name="com.roshan.persona.connectivity.sos.SosActivity"
+            android:label="NOUS SOS"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+            android:excludeFromRecents="true"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:exported="false" />
+
+        <!-- ─── SosPowerTapReceiver — listens for ACTION_SCREEN_ON/OFF to detect
+             the 5-tap power-button SOS trigger (Strategy §11.6). -->
+        <receiver
+            android:name="com.roshan.persona.connectivity.sos.SosPowerTapReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON" />
+                <action android:name="android.intent.action.SCREEN_OFF" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

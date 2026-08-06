@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Module 5 — Voice & NLP Stack
+      The :feature:voice module records audio for wake-word detection, STT,
+      speaker recognition, and live translation. The actual RECORD_AUDIO
+      permission is requested by :app at runtime (PermissionModule) so that
+      library modules don't need their own permission declarations.
+
+      We declare it here as <uses-permission> (not <uses-permission-sdk-23>)
+      so the manifest merger propagates it to :app — but runtime prompting
+      still happens via ActivityResultContracts in :core:permissions.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+</manifest>

@@ -1,0 +1,99 @@
+# =============================================================================
+# NOUS — .gitignore
+# =============================================================================
+
+# ─── Secrets (NEVER COMMIT) ─────────────────────────────────────────────────
+secrets.gradle
+secrets.properties
+*.keystore
+*.jks
+keystore.properties
+signing.properties
+google-services.json
+**/google-services.json
+**/firebase-*.json
+.env
+.env.*
+
+# ─── Gradle ─────────────────────────────────────────────────────────────────
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+gradle/verification-keyring.gpg
+local.properties
+
+# ─── Android Studio / IntelliJ ──────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.navigation/
+captures/
+
+# ─── Eclipse / VS Code ──────────────────────────────────────────────────────
+.classpath
+.project
+.settings/
+bin/
+.vscode/
+*.swp
+
+# ─── Native build artifacts ─────────────────────────────────────────────────
+.cxx/
+*.so
+!**/src/main/cpp/**/*.so  # keep checked-in native libs (if any)
+**/cpp/build/
+**/cpp/.cxx/
+
+# ─── Crash logs / heap dumps ────────────────────────────────────────────────
+*.hprof
+hs_err_pid*
+crash-*.txt
+replay_pid*
+
+# ─── macOS / Windows / Linux ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs ──────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Test / Coverage Reports ───────────────────────────────────────────────
+reports/
+coverage/
+*.exec
+.jacoco/
+
+# ─── Detekt / Spotless caches ───────────────────────────────────────────────
+.detekt/
+.spotless/
+
+# ─── KSP / KAPT generated ───────────────────────────────────────────────────
+**/generated/source/ksp/**
+**/generated/source/kapt/**
+
+# ─── Paparazzi snapshots (golden) ───────────────────────────────────────────
+!**/src/test/snapshots/**/*.png
+
+# ─── Keystores for app signing ──────────────────────────────────────────────
+app/keystore/
+app/release/
+**/release/*.jks
+
+# ─── Models / large binaries (delivered via Play Asset Delivery) ────────────
+**/assets/models/*.gguf
+**/assets/models/*.onnx
+**/assets/models/*.tflite
+**/assets/models/*.bin
+
+# ─── Build-logic build dir ──────────────────────────────────────────────────
+build-logic/build/
+build-logic/.gradle/
+
+# ─── Documentation build ────────────────────────────────────────────────────
+docs/_build/
+docs/site/

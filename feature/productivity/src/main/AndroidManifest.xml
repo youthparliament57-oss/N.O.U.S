@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- SCHEDULE_EXACT_ALARM (API 31+) — for setAlarmClock + setExactAndAllowWhileIdle. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- USE_EXACT_ALARM (API 34+) — alternative to SCHEDULE_EXACT_ALARM for alarm apps. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- POST_NOTIFICATIONS (API 33+) — for alarm/timer/reminder notifications. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- FOREGROUND_SERVICE — for TimerForegroundService. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- READ/WRITE_CALENDAR — for CalendarContract operations. -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <!-- WAKE_LOCK — for alarm wake-up. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- RECEIVE_BOOT_COMPLETED — to reschedule alarms after device reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application>
+
+        <!-- Alarm Receiver — receives alarm/timer fire broadcasts. -->
+        <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="com.roshan.persona.ALARM_FIRE" />
+                <action android:name="com.roshan.persona.TIMER_FIRE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Timer Foreground Service — keeps timer running in background. -->
+        <service
+            android:name=".alarm.TimerForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Timer countdown for NOUS assistant" />
+        </service>
+
+        <!-- Reminder Action Receiver — handles SNOOZE / DISMISS button taps from reminder notifications. -->
+        <receiver
+            android:name=".reminder.ReminderActionReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="com.roshan.persona.REMINDER_SNOOZE" />
+                <action android:name="com.roshan.persona.REMINDER_DISMISS" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

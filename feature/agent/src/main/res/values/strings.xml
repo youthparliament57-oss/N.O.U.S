@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nous_accessibility_description">NOUS Agent — enables voice-controlled automation, screen reading, and UI interaction. NOUS can find and click buttons (e.g., auto-send WhatsApp messages), take screenshots for visual understanding, and perform system actions (torch, back, home). NOUS never reads passwords, banking apps, or personal messages. All processing is on-device.</string>
+</resources>

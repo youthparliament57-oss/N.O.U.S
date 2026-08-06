@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+  NOUS — Automation Module Manifest (Module 8).
+
+  Permissions declared here:
+    - RECEIVE_BOOT_COMPLETED          — AutomationBootReceiver needs this to
+                                        reschedule rules after device reboot.
+    - ACCESS_FINE_LOCATION            — GeofencingClient requires fine location
+                                        for geofence registration.
+    - ACCESS_BACKGROUND_LOCATION      — Android 10+ requires this for geofence
+                                        transitions received while the app is
+                                        in the background.
+    - POST_NOTIFICATIONS              — Android 13+ requires this for
+                                        NotifyAction to post notifications.
+    - READ_PHONE_STATE                — EventTrigger for CALL_INCOMING/CALL_ENDED.
+    - RECEIVE_SMS                     — EventTrigger for SMS_RECEIVED.
+
+  Receivers declared here:
+    - AutomationBootReceiver          — Manifest-registered for BOOT_COMPLETED.
+    - AutomationEventReceiver         — Manifest-registered for system events
+                                        that fire even when the app is dead
+                                        (SCREEN_ON/OFF, USER_PRESENT, etc.).
+    - AutomationGeofenceReceiver      — Target of GeofencingClient's
+                                        PendingIntent — delivered by Play
+                                        Services when a geofence transitions.
+
+  The dynamic receivers for individual EventTrigger/StateTrigger rules are
+  registered at runtime via Context.registerReceiver() — they don't need to
+  be in the manifest.
+
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ─── Permissions ────────────────────────────────────────────────── -->
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
+    <!-- ─── Receivers ──────────────────────────────────────────────────── -->
+
+    <application>
+
+        <!-- Boot receiver — reschedules all automation rules after reboot. -->
+        <receiver
+            android:name="com.roshan.persona.automation.worker.AutomationBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Event receiver — handles system events for EventTrigger rules. -->
+        <receiver
+            android:name="com.roshan.persona.automation.worker.AutomationEventReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON" />
+                <action android:name="android.intent.action.SCREEN_OFF" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Geofence receiver — target of GeofencingClient's PendingIntent.
+             Must be exported=false to prevent other apps from triggering it. -->
+        <receiver
+            android:name="com.roshan.persona.automation.worker.AutomationGeofenceReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

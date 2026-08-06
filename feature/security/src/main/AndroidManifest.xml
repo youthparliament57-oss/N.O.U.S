@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      :feature:security — Module 12: Security Stack.
+
+      No runtime permissions declared here (BiometricPrompt + USE_BIOMETRIC
+      is in :app; Play Integrity requires no permission; FLAG_SECURE
+      requires no permission; AndroidKeystore requires no permission).
+
+      The <queries> block is required on Android 11+ (API 30+) for
+      PackageManager.getPackageInfo() to detect supply-chain threats via
+      package presence (Magisk, Frida, Xposed, Substrate, KingRoot, etc.).
+      Without these queries, the system returns "package not found" for
+      every external app, and SupplyChainMonitor would be blind.
+    -->
+    <queries>
+        <!-- Frida (runtime hooking framework). -->
+        <package android:name="re.frida.server" />
+
+        <!-- Xposed / LSPosed (framework hooking). -->
+        <package android:name="de.robv.android.xposed.installer" />
+        <package android:name="org.lsposed.manager" />
+
+        <!-- Substrate (legacy hooking framework). -->
+        <package android:name="com.saurik.substrate" />
+
+        <!-- Magisk (modern root solution). -->
+        <package android:name="com.topjohnwu.magisk" />
+
+        <!-- SuperSU (older root solution, by Chainfire). -->
+        <package android:name="eu.chainfire.supersu" />
+
+        <!-- KingRoot / KingoRoot (Chinese one-click root tools). -->
+        <package android:name="com.kingroot.kinguser" />
+        <package android:name="com.kingo.root" />
+    </queries>
+
+</manifest>

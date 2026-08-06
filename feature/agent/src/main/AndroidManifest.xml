@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- NousAccessibilityService — registered as a real Android AccessibilityService.
+         User must enable it manually in Settings → Accessibility → NOUS.
+         No special permissions needed — AccessibilityService is granted via Settings. -->
+
+    <application>
+
+        <!-- NOUS Accessibility Service — the core of Module 9.
+             Handles: UI automation (tap/swipe/type), screenshot capture, screen reading,
+             global actions (back/home/recents/lock/torch). -->
+        <service
+            android:name=".accessibility.NousAccessibilityService"
+            android:label="NOUS Agent"
+            android:description="@string/nous_accessibility_description"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+
+        </service>
+
+        <!-- NOTE: NousNotificationListenerService now lives in :feature:connectivity
+             (com.roshan.persona.connectivity.notification.NousNotificationListenerService)
+             where the NotificationCache + MessagingUnificationEngine consumers live.
+             The previous phantom declaration here pointed to a non-existent class
+             in this module — see worklog Task ID: fix-m11-critical. -->
+
+    </application>
+
+</manifest>

@@ -1,0 +1,1 @@
+// Copyright (c) 2026 Roshan. All rights reserved.// Proprietary license — see LICENSE file for details.package com.roshan.persona.llm.diimport javax.inject.Qualifier/** * Qualifier for the LLM OkHttpClient. * * Prevents collision with the connectivity-tools OkHttpClient binding. */@Qualifier@Retention(AnnotationRetention.BINARY)annotation class LlmHttp

@@ -1,0 +1,15 @@
+# =============================================================================
+# local.properties.example — copy to `local.properties` (gitignored)
+#
+# This file is read by settings.gradle.kts and convention plugins to locate
+# the Android SDK on dev machines. CI sets ANDROID_HOME env var instead.
+# =============================================================================
+
+sdk.dir=/path/to/Android/Sdk
+
+# Optional: NDK path (defaults to <sdk>/ndk/<version>)
+# ndk.dir=/path/to/Android/Sdk/ndk/27.1.12297006
+
+# Optional: Override secrets during local dev (secrets.gradle takes precedence)
+# NOUS_OPENAI_API_KEY=sk-...
+# NOUS_ANTHROPIC_API_KEY=sk-ant-...

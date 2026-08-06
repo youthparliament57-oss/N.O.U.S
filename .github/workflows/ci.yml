@@ -1,0 +1,320 @@
+# =============================================================================
+# NOUS — CI Pipeline (Pull Request + Push)
+#
+# Runs on every push to develop/main and every PR. Stages:
+#   1. Checkout + cache
+#   2. Static analysis (ktlint + detekt + Lint)
+#   3. Unit tests + coverage
+#   4. Build debug APK (sanity)
+#   5. Build release AAB (sanity, no signing)
+#
+# Total target wall-clock: ~8 minutes (with caching).
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [develop, main, 'release/**']
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configuration-cache=true"
+  JAVA_VERSION: "17"
+  JAVA_DISTRIBUTION: "temurin"
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Stage 1: Static Analysis
+  # ─────────────────────────────────────────────────────────────────────────
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for blame in detekt
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
+
+      - name: Cache Gradle caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/native
+            .gradle
+          key: gradle-caches-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: |
+            gradle-caches-${{ runner.os }}-
+
+      - name: Cache build outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/build
+            !**/build/outputs
+          key: build-outputs-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            build-outputs-${{ runner.os }}-
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'ndk;27.1.12297006 cmake;3.22.1'
+
+      - name: Cache Konan (Kotlin/Native)
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+
+      - name: Create secrets.gradle (empty)
+        run: |
+          cat > secrets.gradle << 'EOF'
+          ext {
+              nousOpenAiApiKey = ""
+              nousAnthropicApiKey = ""
+              nousGeminiApiKey = ""
+              nousGroqApiKey = ""
+              nousOpenRouterApiKey = ""
+              nousBugsnagKey = ""
+              nousSentryDsn = ""
+              nousSigningKeyAlias = "nous-upload"
+              nousSigningKeyPassword = ""
+              nousSigningStorePassword = ""
+              nousModelCatalogUrl = "https://raw.githubusercontent.com/roshan/nous-models/main/catalog.json"
+          }
+          EOF
+
+      - name: Run Spotless (formatting check)
+        run: ./gradlew spotlessCheck --stacktrace
+
+      - name: Run Detekt (static analysis)
+        run: ./gradlew detekt --stacktrace
+
+      - name: Run Android Lint
+        run: ./gradlew lint --stacktrace
+
+      - name: Upload Detekt reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-reports
+          path: |
+            **/build/reports/detekt/
+            **/build/reports/lint-results-*.html
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Stage 2: Unit Tests + Coverage
+  # ─────────────────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    needs: static-analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'ndk;27.1.12297006 cmake;3.22.1'
+
+      - name: Create secrets.gradle (empty)
+        run: |
+          cat > secrets.gradle << 'EOF'
+          ext {
+              nousOpenAiApiKey = ""
+              nousAnthropicApiKey = ""
+              nousGeminiApiKey = ""
+              nousGroqApiKey = ""
+              nousOpenRouterApiKey = ""
+              nousBugsnagKey = ""
+              nousSentryDsn = ""
+              nousSigningKeyAlias = "nous-upload"
+              nousSigningKeyPassword = ""
+              nousSigningStorePassword = ""
+              nousModelCatalogUrl = "https://raw.githubusercontent.com/roshan/nous-models/main/catalog.json"
+          }
+          EOF
+
+      - name: Run unit tests
+        run: ./gradlew test --stacktrace
+
+      - name: Generate coverage report
+        run: ./gradlew koverReport --stacktrace
+        continue-on-error: true  # kover may not be wired yet in early modules
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+          retention-days: 7
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            **/build/reports/kover/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Stage 3: Build Sanity (Debug APK)
+  # ─────────────────────────────────────────────────────────────────────────
+  build-debug:
+    name: Build Debug APK
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'ndk;27.1.12297006 cmake;3.22.1'
+
+      - name: Create secrets.gradle (empty)
+        run: |
+          cat > secrets.gradle << 'EOF'
+          ext {
+              nousOpenAiApiKey = ""
+              nousAnthropicApiKey = ""
+              nousGeminiApiKey = ""
+              nousGroqApiKey = ""
+              nousOpenRouterApiKey = ""
+              nousBugsnagKey = ""
+              nousSentryDsn = ""
+              nousSigningKeyAlias = "nous-upload"
+              nousSigningKeyPassword = ""
+              nousSigningStorePassword = ""
+              nousModelCatalogUrl = "https://raw.githubusercontent.com/roshan/nous-models/main/catalog.json"
+          }
+          EOF
+
+      - name: Assemble dev debug APK
+        run: ./gradlew :app:assembleDevDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-debug-apk
+          path: app/build/outputs/apk/dev/debug/*.apk
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Stage 4: Build Sanity (Release AAB, unsigned)
+  # ─────────────────────────────────────────────────────────────────────────
+  build-release-aab:
+    name: Build Release AAB (unsigned)
+    needs: build-debug
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'ndk;27.1.12297006 cmake;3.22.1'
+
+      - name: Create secrets.gradle (empty)
+        run: |
+          cat > secrets.gradle << 'EOF'
+          ext {
+              nousOpenAiApiKey = ""
+              nousAnthropicApiKey = ""
+              nousGeminiApiKey = ""
+              nousGroqApiKey = ""
+              nousOpenRouterApiKey = ""
+              nousBugsnagKey = ""
+              nousSentryDsn = ""
+              nousSigningKeyAlias = "nous-upload"
+              nousSigningKeyPassword = ""
+              nousSigningStorePassword = ""
+              nousModelCatalogUrl = "https://raw.githubusercontent.com/roshan/nous-models/main/catalog.json"
+          }
+          EOF
+
+      - name: Bundle prod release AAB (R8 full mode)
+        run: ./gradlew :app:bundleProdRelease --stacktrace
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-release-aab-unsigned
+          path: app/build/outputs/bundle/prodRelease/*.aab
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Stage 5: Notify (Slack/Discord via webhook)
+  # ─────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Notify
+    needs: [static-analysis, unit-tests, build-debug, build-release-aab]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: ${{ needs.build-release-aab.result == 'success' ? 'good' : 'danger' }}
+          SLACK_TITLE: "NOUS CI: ${{ github.ref_name }}"
+          SLACK_MESSAGE: "Build ${{ needs.build-release-aab.result == 'success' && '✅' || '❌' }}"

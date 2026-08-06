@@ -1,0 +1,62 @@
+# =============================================================================
+# NOUS — EditorConfig
+#
+# Enforces consistent coding style across editors and IDEs.
+# =============================================================================
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 140
+
+[*.{kt,kts}]
+# ktlint settings (also enforced by Spotless)
+ktlint_standard_no-wildcard-imports = enabled
+ktlint_standard_filename = enabled
+ktlint_standard_final-newline = enabled
+ktlint_standard_indent = enabled
+ktlint_standard_no-blank-line-before-rbrace = enabled
+ktlint_standard_no-consecutive-blank-lines = enabled
+ktlint_standard_no-empty-class-body = enabled
+ktlint_standard_no-line-break-after-else = enabled
+ktlint_standard_no-line-break-before-assignment = enabled
+ktlint_standard_no-multi-spaces = enabled
+ktlint_standard_no-semi = enabled
+ktlint_standard_no-trailing-spaces = enabled
+ktlint_standard_wrapping = enabled
+ktlint_standard_comment-spacing = enabled
+ktlint_standard_multiline-if-else = enabled
+ktlint_standard_string-template-indent = enabled
+
+# Detekt: also pick up some settings from here
+ij_kotlin_imports_layout = *
+ij_kotlin_name_count_to_use_star_import = 30
+ij_kotlin_packages_to_use_import_on_demand = java.util.*,kotlinx.coroutines.*,androidx.compose.material3.*,androidx.compose.foundation.layout.*
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.{json,xml,html}]
+indent_size = 4
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+max_line_length = off
+
+[Makefile]
+indent_style = tab
+
+[*.{sh,bash}]
+indent_size = 2
+
+[*.gradle.kts]
+indent_size = 4
+
+[*.properties]
+indent_size = 2

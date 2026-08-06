@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# =============================================================================
+# NOUS — Pre-commit Hook (Lightweight)
+#
+# Runs ONLY quick checks before commit (under 5 seconds).
+# Heavy checks (detekt, secret scanning, tests) run in CI.
+#
+# Install via:
+#   cp scripts/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+# =============================================================================
+
+set -e
+
+echo "═══════════════════════════════════════════════════════════════"
+echo "  NOUS Pre-commit (quick checks only)"
+echo "═══════════════════════════════════════════════════════════════"
+
+# ─── 1. Check for keystore files (instant) ──────────────────────────────────
+if git diff --cached --name-only | grep -E '\.(jks|keystore)$' > /dev/null; then
+    echo "❌ Attempting to commit a keystore file — aborting."
+    exit 1
+fi
+
+# Check for google-services.json
+if git diff --cached --name-only | grep -E 'google-services\.json$' > /dev/null; then
+    echo "❌ Attempting to commit google-services.json — aborting."
+    exit 1
+fi
+
+# Check for secrets.gradle
+if git diff --cached --name-only | grep -E '^secrets\.gradle$' > /dev/null; then
+    echo "❌ Attempting to commit secrets.gradle — aborting."
+    exit 1
+fi
+
+echo "  ✅ No sensitive files detected."
+
+# ─── 2. Check for license headers (instant) ─────────────────────────────────
+MISSING_LICENSE=0
+for file in $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(kt|kts)$'); do
+    if ! head -3 "$file" | grep -q "Copyright (c) 2026 Roshan"; then
+        echo "  ❌ Missing license header: $file"
+        MISSING_LICENSE=1
+    fi
+done
+
+if [ $MISSING_LICENSE -ne 0 ]; then
+    echo ""
+    echo "Add this header to the top of each file:"
+    echo "  // Copyright (c) 2026 Roshan. All rights reserved."
+    echo "  // Proprietary license — see LICENSE file for details."
+    exit 1
+fi
+echo "  ✅ All Kotlin files have license headers."
+
+echo "═══════════════════════════════════════════════════════════════"
+echo "  ✅ Pre-commit passed. (CI will run detekt, tests, secret scan)"
+echo "═══════════════════════════════════════════════════════════════"

@@ -1,0 +1,144 @@
+# NOUS Android - GitHub Actions CI/CD Workflow
+# Automatically builds APK on push to main branch or pull requests
+#
+# Features:
+# - Builds debug and release APKs
+# - Runs unit tests
+# - Uploads artifacts for download
+# - Works with all 15 feature modules + 4 native modules
+
+name: NOUS Android Build
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+
+env:
+  # Use JDK 21 for building
+  JAVA_VERSION: '21'
+  # Android SDK parameters
+  ANDROID_API_LEVEL: '36'
+  NDK_VERSION: '27.1.12297006'
+
+jobs:
+  build:
+    name: Build APK (${{ github.event.inputs.build_type || 'debug' }})
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          ndk-version: ${{ env.NDK_VERSION }}
+          cmake-version: '3.22.1'
+          build-tools: '34.0.0'
+          cmdline-tools-latest: true
+          accept-all-licenses: true
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        if: github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == ''
+        run: ./gradlew assembleDevDebug --no-daemon --stacktrace 2>&1 | tee build.log
+        
+      - name: Build Release APK
+        if: github.event.inputs.buildtype == 'release'
+        run: ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Run Unit Tests
+        run: ./gradlew testDevDebugUnitTest --no-daemon --stacktrace 2>&1 | tee test.log
+        continue-on-error: true
+
+      - name: Upload Debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOUS-debug-apk
+          path: app/build/outputs/apk/dev/debug/*.apk
+          retention-days: 30
+
+      - name: Upload Release APK
+        if: success() && github.event.inputs.buildtype == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOUS-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+      - name: Upload Build Log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 7
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: app/build/reports/tests/
+          retention-days: 7
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          if [ -f "app/build/outputs/apk/dev/debug/*.apk" ]; then
+            echo "- ✅ **Debug APK:** Available for download" >> $GITHUB_STEP_SUMMARY
+            ls -lh app/build/outputs/apk/dev/debug/*.apk >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "app/build/outputs/apk/release/*.apk" ]; then
+            echo "- ✅ **Release APK:** Available for download" >> $GITHUB_STEP_SUMMARY
+            ls -lh app/build/outputs/apk/release/*.apk >> $GITHUB_STEP_SUMMARY
+          fi

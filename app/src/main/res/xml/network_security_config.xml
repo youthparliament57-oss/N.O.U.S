@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Default: no cleartext traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Local dev (debug builds) — allow localhost HTTP for Ollama/LM Studio -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">192.168.0.0/16</domain>
+    </domain-config>
+
+    <!-- Cloud LLM providers — pinned (SPKI hashes populated in :core:network) -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">api.openai.com</domain>
+        <domain includeSubdomains="true">api.anthropic.com</domain>
+        <domain includeSubdomains="true">generativelanguage.googleapis.com</domain>
+        <domain includeSubdomains="true">api.groq.com</domain>
+        <domain includeSubdomains="true">openrouter.ai</domain>
+        <!-- Pin set added programmatically in :core:network -->
+        <!-- CRITICAL FIX #44: Removed invalid placeholder pins. 
+             Certificate pinning is now handled programmatically via OkHttp CertificatePinner 
+             in HttpClientFactory.kt with per-domain configuration from NetworkConfig.
+             Pinning in XML is deprecated in favor of programmatic pinning for flexibility. -->
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Debug-only: trust user-added CAs for traffic inspection -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>
