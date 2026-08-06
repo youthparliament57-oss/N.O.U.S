@@ -3,6 +3,7 @@
 
 package com.roshan.persona.hacker
 
+import android.content.Context
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,7 +29,9 @@ import javax.inject.Singleton
  * - Terminal: [BuildConfig.ENABLE_TERMINAL]
  */
 @Singleton
-class HackerFeature @Inject constructor() {
+class HackerFeature @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context,
+) {
 
     /**
      * Whether this feature is available on this device/flavor.
@@ -76,13 +79,21 @@ class HackerFeature @Inject constructor() {
     /** Get the feature's description for the Play Feature Delivery UI. */
     val description: String = "Ethical hacking tools (sideload only)"
 
+    private val prefs = context.getSharedPreferences("hacker_feature_prefs", Context.MODE_PRIVATE)
+
     /**
-     * Show disclaimer dialog before first use.
+     * Check if the disclaimer has been accepted.
      * Per ADR-0009: User must accept that tools are "for authorized security testing only".
      */
     fun requireDisclaimerAccepted(): Boolean {
-        // TODO: Implement shared prefs check + dialog
-        return true
+        return prefs.getBoolean("disclaimer_accepted", false)
+    }
+
+    /**
+     * Set the disclaimer acceptance state.
+     */
+    fun setDisclaimerAccepted(accepted: Boolean) {
+        prefs.edit().putBoolean("disclaimer_accepted", accepted).apply()
     }
 }
 

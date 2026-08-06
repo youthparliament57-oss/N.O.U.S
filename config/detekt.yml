@@ -31,7 +31,7 @@ comments:
   excludes: ['**/test/**', '**/androidTest/**']
   AbsentOrWrongFileLicense:
     active: true
-    licenseTemplateFile: 'config/license-header.txt'
+    licenseTemplateFile: 'license-header.txt'
     licenseTemplateIsRegex: false
   OutdatedDocumentation:
     active: true
@@ -98,8 +98,6 @@ coroutines:
   RedundantSuspendModifier:
     active: true
   SleepInsteadOfDelay:
-    active: true
-  SuspendFunWithCoroutineScopeReturnType:
     active: true
   SuspendFunWithFlowReturnType:
     active: true
@@ -284,12 +282,6 @@ potential-bugs:
     active: true
   Deprecation:
     active: true
-  DontDowncastCollectionType:
-    active: true
-  DoubleMutabilityForValues:
-    active: true
-  DuplicateCaseInWhenExpression:
-    active: true
   EqualsAlwaysReturnsTrueOrFalse:
     active: true
   EqualsWithHashCodeExist:
@@ -322,13 +314,9 @@ potential-bugs:
     active: true
   MissingPackageDeclaration:
     active: true
-  MissingWhenCase:
-    active: true
   NullCheckOnMutableProperty:
     active: true
   NullableToStringCall:
-    active: true
-  RedundantElseInWhen:
     active: true
   UnconditionalJumpStatementInLoop:
     active: true
@@ -378,8 +366,6 @@ style:
     active: true
   EqualsNullCall:
     active: true
-  EqualsOnSameLine:
-    active: true
   ExplicitCollectionElementAccessMethod:
     active: true
   ExplicitItLambdaParameter:
@@ -388,12 +374,11 @@ style:
     active: false
   ForbiddenComment:
     active: true
-    values:
+    comments:
       - 'STOPSHIP:'
       - 'TODO:'
       - 'FIXME:'
       - 'XXX:'
-    allowedTextRegex: ''
   ForbiddenImport:
     active: false
   ForbiddenMethodCall:
@@ -456,11 +441,6 @@ style:
     active: true
   NewLineAtEndOfFile:
     active: true
-  NoTabsInDocComment:
-    active: true
-  NoWildcardImports:
-    active: true
-    excludes: []  # Compose previews are exempted via `@file:Suppress`
   ObjectLiteralToLambda:
     active: true
   OptionalAbstractKeyword:
@@ -557,11 +537,8 @@ style:
     active: true
   UseRequireNotNull:
     active: true
-  UseSumInsteadOfFlatMap:
-    active: true
   VarCouldBeVal:
     active: true
   WildcardImport:
     active: true
     excludes: []
-    maxImportsUntilUseWildcard: 30
