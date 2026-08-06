@@ -74,16 +74,17 @@ class TimberInitializer @Inject constructor() : AppInitializer {
  *
  * Strategy §4.7: Predictive preloading of LLM model is triggered when device
  * is charging + idle. For now, this initializer just logs intent — actual
- * preload logic lives in :feature:llm's PredictiveModelPreloader (TODO wire).
+ * preload logic lives in :feature:llm's PredictiveModelPreloader.
  */
 @Singleton
-class PreloadInitializer @Inject constructor() : AppInitializer {
+class PreloadInitializer @Inject constructor(
+    private val predictiveModelPreloader: com.roshan.persona.llm.local.PredictiveModelPreloader,
+) : AppInitializer {
     override val priority: Priority = Priority.LAZY
     override val isBlocking: Boolean = false
     
     override fun initialize(context: Context) {
-        Timber.tag("NOUS.Init").d("Preload initializer ran (no-op until :feature:llm wires)")
-        // TODO: When :feature:llm provides PredictiveModelPreloader via Hilt,
-        // inject it here and call checkAndPreload().
+        Timber.tag("NOUS.Init").d("Preload initializer ran, scheduling predictive preload")
+        predictiveModelPreloader.schedulePreload(context)
     }
 }
