@@ -191,7 +191,7 @@ Java_com_roshan_persona_voice_stt_whisper_WhisperJni_nativeFull(
     std::string language = jstr(env, j_language);
     params.language = language.c_str();
     params.translate = (translate == JNI_TRUE);
-    params.speed_up = (speed_up == JNI_TRUE);
+    // speed_up removed in whisper.cpp
     params.print_realtime = false;
     params.print_progress = false;
     params.print_timestamps = false;
@@ -244,7 +244,7 @@ Java_com_roshan_persona_voice_stt_whisper_WhisperJni_nativeFullStream(
     std::string language = jstr(env, j_language);
     params.language = language.c_str();
     params.translate = (translate == JNI_TRUE);
-    params.speed_up = (speed_up == JNI_TRUE);
+    // speed_up removed in whisper.cpp
     params.print_realtime = false;
     params.print_progress = false;
     params.print_timestamps = false;
@@ -252,7 +252,7 @@ Java_com_roshan_persona_voice_stt_whisper_WhisperJni_nativeFullStream(
     params.no_timestamps = true;
 
     // Per-segment callback — invokes the Kotlin lambda for each new segment.
-    params.new_segment_callback = [](whisper_context* /*ctx*/, whisper_state* /*state*/, void* user_data) {
+    params.new_segment_callback = [](whisper_context* /*ctx*/, whisper_state* /*state*/, int /*n_new*/, void* user_data) {
         WhisperContext* wc = static_cast<WhisperContext*>(user_data);
         if (!wc) return;
         // The Kotlin callback invocation needs the JNIEnv — we'd typically
@@ -315,9 +315,9 @@ Java_com_roshan_persona_voice_stt_whisper_WhisperJni_nativeGetModelInfo(
 
     // Build a small JSON describing the model.
     std::string json = "{";
-    json += "\"vocab_size\":" + std::to_string(whisper_model_n_vocab(ctx->model)) + ",";
-    json += "\"audio_ctx\":" + std::to_string(whisper_model_n_audio_ctx(ctx->model)) + ",";
-    json += "\"text_state\":" + std::to_string(whisper_model_n_text_state(ctx->model));
+    json += "\"vocab_size\":" + std::to_string(whisper_model_n_vocab(ctx)) + ",";
+    json += "\"audio_ctx\":" + std::to_string(whisper_model_n_audio_ctx(ctx)) + ",";
+    json += "\"text_state\":" + std::to_string(whisper_model_n_text_state(ctx));
     json += "}";
     whisper_free(ctx);
     return env->NewStringUTF(json.c_str());
