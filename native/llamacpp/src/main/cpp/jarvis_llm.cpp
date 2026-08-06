@@ -73,8 +73,9 @@ static void crash_handler(int signal, siginfo_t* info, void* context) {
         fsync(g_crash_pipe_fd);
     }
     // Re-raise to let default handler run (tombstone)
-    signal(signal, SIG_DFL);
-    raise(signal);
+    // Avoid name clash: use global scope resolution
+    ::signal(signal, SIG_DFL);
+    ::raise(signal);
 }
 
 // ─── JNI method implementations ────────────────────────────────────
@@ -237,10 +238,10 @@ Java_com_roshan_persona_llamacpp_LlamaCppJni_nativeRemoveLoraAdapterImpl(
     JNIEnv* /*env*/, jobject /*thiz*/, jlong /*modelHandle*/, jlong /*loraHandle*/) {
 
 #ifdef LLAMA_STUB_MODE
-    (void)modelHandle;
-    (void)loraHandle;
     LOGI("nativeRemoveLoraAdapterImpl called (stub mode)");
 #else
+    (void)modelHandle;
+    (void)loraHandle;
     // Real impl: remove LoRA adapter
 #endif
 }
