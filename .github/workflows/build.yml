@@ -57,7 +57,7 @@ env:
   # NDK version for native code
   ANDROID_NDK_VERSION: "27.1.12297006"
   # Java version
-  JAVA_VERSION: '17'
+  JAVA_VERSION: '21'
   # SDK versions
   COMPILE_SDK: '36'
   MIN_SDK: '29'
@@ -80,7 +80,7 @@ jobs:
           fetch-depth: 0
       
       - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
@@ -191,7 +191,7 @@ jobs:
           fetch-depth: 0
       
       - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
@@ -271,7 +271,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
