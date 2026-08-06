@@ -8,6 +8,7 @@
 package com.roshan.persona.init
 
 import android.content.Context
+import com.roshan.persona.llm.local.PredictiveModelPreloader
 import androidx.room.RoomDatabase
 import com.roshan.persona.database.NousDatabase
 import com.roshan.persona.di.AppInitializer
@@ -77,13 +78,14 @@ class TimberInitializer @Inject constructor() : AppInitializer {
  * preload logic lives in :feature:llm's PredictiveModelPreloader (TODO wire).
  */
 @Singleton
-class PreloadInitializer @Inject constructor() : AppInitializer {
+class PreloadInitializer @Inject constructor(
+    private val predictiveModelPreloader: PredictiveModelPreloader,
+) : AppInitializer {
     override val priority: Priority = Priority.LAZY
     override val isBlocking: Boolean = false
     
     override fun initialize(context: Context) {
-        Timber.tag("NOUS.Init").d("Preload initializer ran (no-op until :feature:llm wires)")
-        // TODO: When :feature:llm provides PredictiveModelPreloader via Hilt,
-        // inject it here and call checkAndPreload().
+        Timber.tag("NOUS.Init").d("Preload initializer ran, scheduling predictive preload")
+        predictiveModelPreloader.schedulePreload(context)
     }
 }

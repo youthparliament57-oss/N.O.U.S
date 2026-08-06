@@ -82,7 +82,7 @@ exoPlayer = "1.4.1"
 # ─── Vision ─────────────────────────────────────────────────────────────────
 mlkitFaceDetection = "16.1.7"
 mlkitObjectDetection = "17.0.2"
-mlkitTextRecognition = "16.0.1"
+mlkitTextRecognition = "19.0.0"
 mlkitBarcode = "17.3.0"
 mlkitImageLabeling = "17.0.9"
 mlkitSegmentation = "16.0.5"

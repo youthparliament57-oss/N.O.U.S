@@ -123,11 +123,11 @@
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
 
+    <!-- CRITICAL FIX #73: Backup disabled for security (contains sensitive encryption keys) -->
     <application
         android:name=".NousApplication"
         android:allowBackup="false"
         android:fullBackupContent="false"
-        <!-- CRITICAL FIX #73: Backup disabled for security (contains sensitive encryption keys) -->
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
