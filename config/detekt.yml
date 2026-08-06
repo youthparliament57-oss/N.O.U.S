@@ -31,7 +31,7 @@ comments:
   excludes: ['**/test/**', '**/androidTest/**']
   AbsentOrWrongFileLicense:
     active: true
-    licenseTemplateFile: 'config/license-header.txt'
+    licenseTemplateFile: 'license-header.txt'
     licenseTemplateIsRegex: false
   OutdatedDocumentation:
     active: true
@@ -98,8 +98,6 @@ coroutines:
   RedundantSuspendModifier:
     active: true
   SleepInsteadOfDelay:
-    active: true
-  SuspendFunWithCoroutineScopeReturnType:
     active: true
   SuspendFunWithFlowReturnType:
     active: true
