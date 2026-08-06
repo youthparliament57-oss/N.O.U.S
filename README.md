@@ -432,7 +432,7 @@ Proprietary License — see [LICENSE](LICENSE) file for details.
 
 - **Issues:** [GitHub Issues](../../issues)
 - **Discussions:** [GitHub Discussions](../../discussions)
-- **Email:** roshan@example.com
+- **Email:** roshanyadavofficial3@gmail.com
 
 ---
 
