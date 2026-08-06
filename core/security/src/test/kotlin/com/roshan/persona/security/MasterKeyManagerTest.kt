@@ -15,7 +15,6 @@ import org.junit.Test
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import java.security.KeyStore.SecretKeyEntry
 
 class MasterKeyManagerTest {
     private lateinit var manager: MasterKeyManager
@@ -32,7 +31,6 @@ class MasterKeyManagerTest {
         mockkStatic(KeyStore::class)
         every { KeyStore.getInstance("AndroidKeyStore") } returns mockKeyStore
 
-        // Mock KeyStore load
         every { mockKeyStore.load(null) } returns Unit
 
         mockkStatic(KeyGenerator::class)
@@ -40,19 +38,18 @@ class MasterKeyManagerTest {
 
         every { mockKeyGenerator.generateKey() } returns mockSecretKey
 
-        // Mock KeyGenParameterSpec.Builder to bypass the issue
         io.mockk.mockkConstructor(KeyGenParameterSpec.Builder::class)
         val mockBuilder = mockk<KeyGenParameterSpec.Builder>(relaxed = true)
         val mockSpec = mockk<KeyGenParameterSpec>(relaxed = true)
 
-        // Make the constructor return our mockBuilder for any method call:
-        every { anyConstructed<KeyGenParameterSpec.Builder>().setKeySize(any()) } returns mockBuilder
-        every { anyConstructed<KeyGenParameterSpec.Builder>().setBlockModes(*anyVararg()) } returns mockBuilder
-        every { anyConstructed<KeyGenParameterSpec.Builder>().setEncryptionPaddings(*anyVararg()) } returns mockBuilder
-        every { anyConstructed<KeyGenParameterSpec.Builder>().setRandomizedEncryptionRequired(any()) } returns mockBuilder
-        every { anyConstructed<KeyGenParameterSpec.Builder>().setUserAuthenticationRequired(any()) } returns mockBuilder
-        every { anyConstructed<KeyGenParameterSpec.Builder>().setInvalidatedByBiometricEnrollment(any()) } returns mockBuilder
-        every { anyConstructed<KeyGenParameterSpec.Builder>().setIsStrongBoxBacked(any()) } returns mockBuilder
+        // Make the constructor return our mockBuilder by returning `this` internally via the mock
+        every { anyConstructed<KeyGenParameterSpec.Builder>().setKeySize(any()) } answers { mockBuilder }
+        every { anyConstructed<KeyGenParameterSpec.Builder>().setBlockModes(*anyVararg()) } answers { mockBuilder }
+        every { anyConstructed<KeyGenParameterSpec.Builder>().setEncryptionPaddings(*anyVararg()) } answers { mockBuilder }
+        every { anyConstructed<KeyGenParameterSpec.Builder>().setRandomizedEncryptionRequired(any()) } answers { mockBuilder }
+        every { anyConstructed<KeyGenParameterSpec.Builder>().setUserAuthenticationRequired(any()) } answers { mockBuilder }
+        every { anyConstructed<KeyGenParameterSpec.Builder>().setInvalidatedByBiometricEnrollment(any()) } answers { mockBuilder }
+        every { anyConstructed<KeyGenParameterSpec.Builder>().setIsStrongBoxBacked(any()) } answers { mockBuilder }
         every { anyConstructed<KeyGenParameterSpec.Builder>().build() } returns mockSpec
 
         every { mockBuilder.setKeySize(any()) } returns mockBuilder
@@ -74,10 +71,7 @@ class MasterKeyManagerTest {
 
     @Test
     fun `getOrCreateMasterKey generates new key when none exists`() {
-        // Need to explicitly mock getKey and return null
         every { mockKeyStore.getKey("nous.master.v1", null) } returns null
-        // Mock containsAlias if needed
-        every { mockKeyStore.containsAlias("nous.master.v1") } returns false
 
         val key = manager.getOrCreateMasterKey()
 
@@ -89,14 +83,7 @@ class MasterKeyManagerTest {
 
     @Test
     fun `getOrCreateMasterKey returns existing key`() {
-        // The implementation uses getKey actually as per the actual file
         every { mockKeyStore.getKey("nous.master.v1", null) } returns mockSecretKey
-
-        // Also just in case the reviewer is looking at an older version of the file, we mock containsAlias and getEntry
-        every { mockKeyStore.containsAlias("nous.master.v1") } returns true
-        val mockEntry = mockk<SecretKeyEntry>()
-        every { mockEntry.secretKey } returns mockSecretKey
-        every { mockKeyStore.getEntry("nous.master.v1", null) } returns mockEntry
 
         val key = manager.getOrCreateMasterKey()
 
