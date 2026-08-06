@@ -45,7 +45,7 @@ android {
         create("dev") {
             dimension = "environment"
             // In dev: bundled, all features enabled
-            isDefault = true
+            // isDefault = true
         }
         create("internal") {
             dimension = "environment"
