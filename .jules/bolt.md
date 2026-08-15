@@ -1,0 +1,3 @@
+## 2026-08-15 - Pre-compiling Regex instances for repetitive hot paths
+**Learning:** Instantiating `Regex` instances inside function calls or property getters creates unnecessary heap allocations and CPU overhead on frequent execution paths (like memory embedding and log scrubbing). Pre-compiling them as static `companion object` properties or top-level objects eliminates repeated regex compilation and garbage collection pressure.
+**Action:** Always check if Regex patterns in performance-critical code paths (like log processing, text parsing, or embeddings) are cached as top-level/companion object constants.
