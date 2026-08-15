@@ -21,8 +21,8 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
     // Face Detection — face contours, landmarks, classification
     implementation(libs.mlkit.face.detection)
-    // Object Detection — SSD MobileNetV3
-    implementation(libs.mlkit.object.detection.get())
+    // Object Detection — SSD MobileNetV3 (note: 'object' is a Kotlin keyword so backticks are required)
+    implementation(libs.mlkit.`object`.detection)
     // Barcode Scanning — QR, UPI, all formats
     implementation(libs.mlkit.barcode.scanning)
     // Image Labeling — general scene understanding
