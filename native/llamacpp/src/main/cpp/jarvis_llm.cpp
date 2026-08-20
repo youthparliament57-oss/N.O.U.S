@@ -57,13 +57,13 @@ static int g_crash_pipe_fd = -1;
  * Instead, writes raw signal code to pipe via write() (async-signal-safe).
  * A separate watchdog process reads the pipe and handles recovery.
  */
-static void crash_handler(int signal, siginfo_t* info, void* context) {
+static void crash_handler(int sigNum, siginfo_t* info, void* /*context*/) {
     if (g_crash_pipe_fd >= 0) {
         // write() is async-signal-safe
         char buf[8];
         memset(buf, 0, 8);
-        buf[0] = (char)(signal & 0xFF);
-        buf[1] = (char)((signal >> 8) & 0xFF);
+        buf[0] = (char)(sigNum & 0xFF);
+        buf[1] = (char)((sigNum >> 8) & 0xFF);
         // Write fault address (truncated to 6 bytes)
         if (info != nullptr) {
             uintptr_t addr = (uintptr_t)info->si_addr;
@@ -73,8 +73,8 @@ static void crash_handler(int signal, siginfo_t* info, void* context) {
         fsync(g_crash_pipe_fd);
     }
     // Re-raise to let default handler run (tombstone)
-    signal(signal, SIG_DFL);
-    raise(signal);
+    ::signal(sigNum, SIG_DFL);
+    raise(sigNum);
 }
 
 // ─── JNI method implementations ────────────────────────────────────
@@ -234,7 +234,7 @@ Java_com_roshan_persona_llamacpp_LlamaCppJni_nativeLoadLoraAdapterImpl(
 
 JNIEXPORT void JNICALL
 Java_com_roshan_persona_llamacpp_LlamaCppJni_nativeRemoveLoraAdapterImpl(
-    JNIEnv* /*env*/, jobject /*thiz*/, jlong /*modelHandle*/, jlong /*loraHandle*/) {
+    JNIEnv* /*env*/, jobject /*thiz*/, jlong modelHandle, jlong loraHandle) {
 
 #ifdef LLAMA_STUB_MODE
     (void)modelHandle;
@@ -242,6 +242,8 @@ Java_com_roshan_persona_llamacpp_LlamaCppJni_nativeRemoveLoraAdapterImpl(
     LOGI("nativeRemoveLoraAdapterImpl called (stub mode)");
 #else
     // Real impl: remove LoRA adapter
+    (void)modelHandle;
+    (void)loraHandle;
 #endif
 }
 
