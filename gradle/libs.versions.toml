@@ -251,7 +251,7 @@ androidx-camera-video = { group = "androidx.camera", name = "camera-video", vers
 # ─── ML Kit Vision ──────────────────────────────────────────────────────────
 mlkit-face-detection = { group = "com.google.mlkit", name = "face-detection", version.ref = "mlkitFaceDetection" }
 mlkit-object-detection = { group = "com.google.mlkit", name = "object-detection", version.ref = "mlkitObjectDetection" }
-mlkit-text-recognition = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition", version.ref = "mlkitTextRecognition" }
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
 mlkit-image-labeling = { group = "com.google.mlkit", name = "image-labeling", version.ref = "mlkitImageLabeling" }
 mlkit-segmentation = { group = "com.google.mlkit", name = "subject-segmentation", version.ref = "mlkitSegmentation" }
