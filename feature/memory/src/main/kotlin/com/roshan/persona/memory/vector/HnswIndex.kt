@@ -1,1 +1,212 @@
-// Copyright (c) 2026 Roshan. All rights reserved.// Proprietary license — see LICENSE file for details.package com.roshan.persona.memory.vectorimport timber.log.Timberimport kotlin.math.sqrt/** * NOUS — HNSW (Hierarchical Navigable Small World) Index. * * Approximate nearest neighbor search for vector similarity. * Supports incremental insertion (no full rebuild) and soft-delete. * * Implementation: simplified HNSW with single layer (for mobile). * Production-grade HNSW would use multiple layers, but mobile * constraints (RAM, battery) favor simpler structures. * * @see <a href="docs/strategy/module-3-strategy-v2.md">§9 HNSW Incremental</a> */class HnswIndex(    /** Vector dimension (e.g., 384 for MiniLM-L6). */    private val dimension: Int = 384,    /** Maximum number of connections per node (M parameter). */    private val maxConnections: Int = 16,    /** Size of dynamic candidate list during search (ef parameter). */    private val efSearch: Int = 50,) {    /** Storage: nodeId → vector. */    private val vectors = mutableMapOf<Long, FloatArray>()    /** Storage: nodeId → set of connected nodeIds. */    private val connections = mutableMapOf<Long, MutableSet<Long>>()    /** Soft-deleted nodeIds (excluded from search, actual removal during VACUUM). */    private val deletedIds = mutableSetOf<Long>()    /** Number of active (non-deleted) vectors. */    val size: Int get() = vectors.size - deletedIds.size    /**     * Add a vector to the index incrementally (no rebuild).     *     * @param vector the embedding vector     * @param id unique ID (typically memory ID from DB)     */    fun addItem(vector: FloatArray, id: Long) {        require(vector.size == dimension) {            "Vector dimension mismatch: expected $dimension, got ${vector.size}"        }        vectors[id] = vector.copyOf()        connections[id] = mutableSetOf()        // Connect to nearest neighbors (simplified — no layered graph)        if (vectors.size > 1) {            val neighbors = findNearestNeighbors(vector, maxConnections, excludeId = id)            for ((neighborId, _) in neighbors) {                // Defensive: ensure both connection sets exist before mutating.                connections[id]?.add(neighborId)                connections[neighborId]?.add(id)                // Enforce max connections                if ((connections[neighborId]?.size ?: 0) > maxConnections) {                    trimConnections(neighborId)                }            }        }    }    /**     * Search for K nearest neighbors.     *     * @param queryVector the search query     * @param k number of results     * @return list of (id, similarity) sorted by similarity descending     */    fun search(queryVector: FloatArray, k: Int): List<Pair<Long, Float>> {        if (vectors.isEmpty()) return emptyList()        // For simplicity, use brute-force search (works well for < 10k vectors)        // Production HNSW would use graph traversal for better scalability        val candidates = vectors            .filterKeys { it !in deletedIds }            .map { (id, vector) -> id to cosineSimilarity(queryVector, vector) }            .sortedByDescending { it.second }            .take(k)        return candidates    }    /**     * Soft-delete a vector (excluded from search, not physically removed).     * Actual removal happens during [vacuum] (nightly VACUUM).     */    fun softDelete(id: Long) {        deletedIds.add(id)    }    /**     * Physically remove all soft-deleted vectors and rebuild connections.     * Called during nightly Dream Mode Phase 7 (VACUUM).     */    fun vacuum() {        for (id in deletedIds) {            vectors.remove(id)            connections.remove(id)            // Remove from all connection lists            for (connList in connections.values) {                connList.remove(id)            }        }        deletedIds.clear()        Timber.d("HNSW vacuum: ${vectors.size} vectors remaining")    }    /**     * Full rebuild — ONLY when embedding model version changes.     * Clears all vectors and connections, then re-adds all vectors.     */    fun rebuild(allVectors: List<Pair<Long, FloatArray>>) {        vectors.clear()        connections.clear()        deletedIds.clear()        for ((id, vector) in allVectors) {            addItem(vector, id)        }        Timber.d("HNSW rebuild: ${vectors.size} vectors indexed")    }    /**     * Clear all data (for testing or factory reset).     */    fun clear() {        vectors.clear()        connections.clear()        deletedIds.clear()    }    // ─── Private helpers ─────────────────────────────────────────────    private fun findNearestNeighbors(        vector: FloatArray,        k: Int,        excludeId: Long,    ): List<Pair<Long, Float>> {        return vectors            .filterKeys { it != excludeId && it !in deletedIds }            .map { (id, v) -> id to cosineSimilarity(vector, v) }            .sortedByDescending { it.second }            .take(k)    }    private fun trimConnections(nodeId: Long) {        val nodeVector = vectors[nodeId] ?: return        val neighbors = connections[nodeId] ?: return        // Keep only the M most similar neighbors        val sorted = neighbors            .map { id -> id to cosineSimilarity(nodeVector, vectors[id] ?: return) }            .sortedByDescending { it.second }            .take(maxConnections)        connections[nodeId] = sorted.map { it.first }.toMutableSet()    }    companion object {        /**         * Cosine similarity between two float vectors.         * Returns value in range [-1.0, 1.0].         */        fun cosineSimilarity(a: FloatArray, b: FloatArray): Float {            if (a.size != b.size) return 0f            var dot = 0.0            var normA = 0.0            var normB = 0.0            for (i in a.indices) {                dot += a[i] * b[i]                normA += a[i] * a[i]                normB += b[i] * b[i]            }            val denom = sqrt(normA) * sqrt(normB)            return if (denom > 1e-10) (dot / denom).toFloat() else 0f        }    }}
+// Copyright (c) 2026 Roshan. All rights reserved.
+// Proprietary license — see LICENSE file for details.
+
+package com.roshan.persona.memory.vector
+
+import timber.log.Timber
+import kotlin.math.sqrt
+
+/**
+ * NOUS — HNSW (Hierarchical Navigable Small World) Index.
+ *
+ * Approximate nearest neighbor search for vector similarity.
+ * Supports incremental insertion (no full rebuild) and soft-delete.
+ *
+ * Implementation: simplified HNSW with single layer (for mobile).
+ * Production-grade HNSW would use multiple layers, but mobile
+ * constraints (RAM, battery) favor simpler structures.
+ *
+ * @see <a href="docs/strategy/module-3-strategy-v2.md">§9 HNSW Incremental</a>
+ */
+class HnswIndex(
+    /** Vector dimension (e.g., 384 for MiniLM-L6). */
+    private val dimension: Int = 384,
+    /** Maximum number of connections per node (M parameter). */
+    private val maxConnections: Int = 16,
+    /** Size of dynamic candidate list during search (ef parameter). */
+    private val efSearch: Int = 50,
+) {
+    /** Storage: nodeId → vector. */
+    private val vectors = mutableMapOf<Long, FloatArray>()
+
+    /** Storage: nodeId → set of connected nodeIds. */
+    private val connections = mutableMapOf<Long, MutableSet<Long>>()
+
+    /** Soft-deleted nodeIds (excluded from search, actual removal during VACUUM). */
+    private val deletedIds = mutableSetOf<Long>()
+
+    /** Number of active (non-deleted) vectors. */
+    val size: Int get() = vectors.size - deletedIds.size
+
+    /**
+     * Add a vector to the index incrementally (no rebuild).
+     *
+     * @param vector the embedding vector
+     * @param id unique ID (typically memory ID from DB)
+     */
+    fun addItem(vector: FloatArray, id: Long) {
+        require(vector.size == dimension) {
+            "Vector dimension mismatch: expected $dimension, got ${vector.size}"
+        }
+        vectors[id] = vector.copyOf()
+        connections[id] = mutableSetOf()
+
+        // Connect to nearest neighbors (simplified — no layered graph)
+        if (vectors.size > 1) {
+            val neighbors = findNearestNeighbors(vector, maxConnections, excludeId = id)
+            for ((neighborId, _) in neighbors) {
+                // Defensive: ensure both connection sets exist before mutating.
+                connections[id]?.add(neighborId)
+                connections[neighborId]?.add(id)
+
+                // Enforce max connections
+                if ((connections[neighborId]?.size ?: 0) > maxConnections) {
+                    trimConnections(neighborId)
+                }
+            }
+        }
+    }
+
+    /**
+     * Search for K nearest neighbors.
+     *
+     * @param queryVector the search query
+     * @param k number of results
+     * @return list of (id, similarity) sorted by similarity descending
+     */
+    fun search(queryVector: FloatArray, k: Int): List<Pair<Long, Float>> {
+        if (vectors.isEmpty()) return emptyList()
+
+        // BOLT OPTIMIZATION: Precalculate query norm once before looping over candidates
+        val queryNorm = computeNormSq(queryVector)
+        if (queryNorm <= 1e-10) return emptyList()
+
+        // For simplicity, use brute-force search (works well for < 10k vectors)
+        // Production HNSW would use graph traversal for better scalability
+        val candidates = vectors
+            .filterKeys { it !in deletedIds }
+            .map { (id, vector) -> id to cosineSimilarityWithNorm(queryVector, queryNorm, vector) }
+            .sortedByDescending { it.second }
+            .take(k)
+        return candidates
+    }
+
+    /**
+     * Soft-delete a vector (excluded from search, not physically removed).
+     * Actual removal happens during [vacuum] (nightly VACUUM).
+     */
+    fun softDelete(id: Long) {
+        deletedIds.add(id)
+    }
+
+    /**
+     * Physically remove all soft-deleted vectors and rebuild connections.
+     * Called during nightly Dream Mode Phase 7 (VACUUM).
+     */
+    fun vacuum() {
+        for (id in deletedIds) {
+            vectors.remove(id)
+            connections.remove(id)
+            // Remove from all connection lists
+            for (connList in connections.values) {
+                connList.remove(id)
+            }
+        }
+        deletedIds.clear()
+        Timber.d("HNSW vacuum: ${vectors.size} vectors remaining")
+    }
+
+    /**
+     * Full rebuild — ONLY when embedding model version changes.
+     * Clears all vectors and connections, then re-adds all vectors.
+     */
+    fun rebuild(allVectors: List<Pair<Long, FloatArray>>) {
+        vectors.clear()
+        connections.clear()
+        deletedIds.clear()
+
+        for ((id, vector) in allVectors) {
+            addItem(vector, id)
+        }
+        Timber.d("HNSW rebuild: ${vectors.size} vectors indexed")
+    }
+
+    /**
+     * Clear all data (for testing or factory reset).
+     */
+    fun clear() {
+        vectors.clear()
+        connections.clear()
+        deletedIds.clear()
+    }
+
+    // ─── Private helpers ─────────────────────────────────────────────
+
+    private fun findNearestNeighbors(
+        vector: FloatArray,
+        k: Int,
+        excludeId: Long,
+    ): List<Pair<Long, Float>> {
+        val vectorNorm = computeNormSq(vector)
+        if (vectorNorm <= 1e-10) return emptyList()
+
+        return vectors
+            .filterKeys { it != excludeId && it !in deletedIds }
+            .map { (id, v) -> id to cosineSimilarityWithNorm(vector, vectorNorm, v) }
+            .sortedByDescending { it.second }
+            .take(k)
+    }
+
+    private fun trimConnections(nodeId: Long) {
+        val nodeVector = vectors[nodeId] ?: return
+        val nodeNorm = computeNormSq(nodeVector)
+        if (nodeNorm <= 1e-10) return
+
+        val neighbors = connections[nodeId] ?: return
+        // Keep only the M most similar neighbors
+        val sorted = neighbors
+            .mapNotNull { id ->
+                val v = vectors[id] ?: return@mapNotNull null
+                id to cosineSimilarityWithNorm(nodeVector, nodeNorm, v)
+            }
+            .sortedByDescending { it.second }
+            .take(maxConnections)
+        connections[nodeId] = sorted.map { it.first }.toMutableSet()
+    }
+
+    companion object {
+        /** Computes the squared L2 norm (sum of squares) of a vector. */
+        private fun computeNormSq(v: FloatArray): Double {
+            var sum = 0.0
+            for (i in v.indices) {
+                sum += v[i] * v[i]
+            }
+            return sum
+        }
+
+        /**
+         * Cosine similarity given a precalculated squared norm for vector `a`.
+         * Avoids recalculating `normA` in vector comparison loops.
+         */
+        private fun cosineSimilarityWithNorm(a: FloatArray, normA: Double, b: FloatArray): Float {
+            if (a.size != b.size || normA <= 1e-10) return 0f
+            var dot = 0.0
+            var normB = 0.0
+            for (i in a.indices) {
+                dot += a[i] * b[i]
+                normB += b[i] * b[i]
+            }
+            val denom = sqrt(normA) * sqrt(normB)
+            return if (denom > 1e-10) (dot / denom).toFloat() else 0f
+        }
+
+        /**
+         * Cosine similarity between two float vectors.
+         * Returns value in range [-1.0, 1.0].
+         */
+        fun cosineSimilarity(a: FloatArray, b: FloatArray): Float {
+            val normA = computeNormSq(a)
+            return cosineSimilarityWithNorm(a, normA, b)
+        }
+    }
+}
