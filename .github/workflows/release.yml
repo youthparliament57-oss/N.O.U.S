@@ -18,7 +18,7 @@ on:
 
 env:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
-  JAVA_VERSION: "17"
+  JAVA_VERSION: "21"
   JAVA_DISTRIBUTION: "temurin"
 
 jobs:
