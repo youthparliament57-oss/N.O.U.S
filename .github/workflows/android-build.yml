@@ -33,7 +33,6 @@ env:
   # Use JDK 21 for building
   JAVA_VERSION: '21'
   # Android SDK parameters
-  ANDROID_API_LEVEL: '36'
   NDK_VERSION: '27.1.12297006'
 
 jobs:
@@ -58,12 +57,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          api-level: ${{ env.ANDROID_API_LEVEL }}
-          ndk-version: ${{ env.NDK_VERSION }}
-          cmake-version: '3.22.1'
-          build-tools: '34.0.0'
-          cmdline-tools-latest: true
-          accept-all-licenses: true
+          packages: 'ndk;27.1.12297006 cmake;3.22.1'
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
