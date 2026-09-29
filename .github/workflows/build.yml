@@ -57,7 +57,7 @@ env:
   # NDK version for native code
   ANDROID_NDK_VERSION: "27.1.12297006"
   # Java version
-  JAVA_VERSION: '17'
+  JAVA_VERSION: '21'
   # SDK versions
   COMPILE_SDK: '36'
   MIN_SDK: '29'
