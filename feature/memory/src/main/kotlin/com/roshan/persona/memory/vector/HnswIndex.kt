@@ -48,6 +48,7 @@ class HnswIndex(
         require(vector.size == dimension) {
             "Vector dimension mismatch: expected $dimension, got ${vector.size}"
         }
+        deletedIds.remove(id)
         vectors[id] = vector.copyOf()
         connections[id] = mutableSetOf()
 
