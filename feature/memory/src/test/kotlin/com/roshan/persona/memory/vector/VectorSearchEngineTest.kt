@@ -90,9 +90,9 @@ class HnswIndexTest {
 
     @Test
     fun `addItem increases size`() {
-        assertThat(index.size()).isEqualTo(0)
+        assertThat(index.size).isEqualTo(0)
         index.addItem(floatArrayOf(1f, 0f, 0f, 0f), 1)
-        assertThat(index.size()).isEqualTo(1)
+        assertThat(index.size).isEqualTo(1)
     }
 
     @Test
@@ -117,7 +117,7 @@ class HnswIndexTest {
 
         assertThat(results).hasSize(1)
         assertThat(results[0].first).isEqualTo(2L)
-        assertThat(index.size()).isEqualTo(1)
+        assertThat(index.size).isEqualTo(1)
     }
 
     @Test
@@ -126,17 +126,7 @@ class HnswIndexTest {
         index.addItem(floatArrayOf(0f, 1f, 0f, 0f), 2)
         index.clear()
 
-        assertThat(index.size()).isEqualTo(0)
-    }
-
-    @Test
-    fun `needsRebuild returns true for different versions`() {
-        assertThat(index.needsRebuild("v1", "v2")).isTrue()
-    }
-
-    @Test
-    fun `needsRebuild returns false for same version`() {
-        assertThat(index.needsRebuild("v1", "v1")).isFalse()
+        assertThat(index.size).isEqualTo(0)
     }
 
     @Test
@@ -149,9 +139,9 @@ class HnswIndexTest {
     fun `addItem after softDelete un-deletes`() {
         index.addItem(floatArrayOf(1f, 0f, 0f, 0f), 1)
         index.softDelete(1)
-        assertThat(index.size()).isEqualTo(0)
+        assertThat(index.size).isEqualTo(0)
 
         index.addItem(floatArrayOf(1f, 0f, 0f, 0f), 1)
-        assertThat(index.size()).isEqualTo(1)
+        assertThat(index.size).isEqualTo(1)
     }
 }
