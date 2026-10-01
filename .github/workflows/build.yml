@@ -124,7 +124,7 @@ jobs:
           echo "  - 4 Dynamic feature modules"
           echo "=============================================="
           
-          ./gradlew assembleDebug \
+          ./gradlew assembleDevDebug \
             --no-daemon \
             --info \
             --stacktrace \
