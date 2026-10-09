@@ -12,6 +12,7 @@ import androidx.room.RoomDatabase
 import com.roshan.persona.database.NousDatabase
 import com.roshan.persona.di.AppInitializer
 import com.roshan.persona.di.Priority
+import com.roshan.persona.llm.local.PredictiveModelPreloader
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -73,17 +74,17 @@ class TimberInitializer @Inject constructor() : AppInitializer {
  * NOUS — Preload Initializer.
  *
  * Strategy §4.7: Predictive preloading of LLM model is triggered when device
- * is charging + idle. For now, this initializer just logs intent — actual
- * preload logic lives in :feature:llm's PredictiveModelPreloader (TODO wire).
+ * is charging + idle.
  */
 @Singleton
-class PreloadInitializer @Inject constructor() : AppInitializer {
+class PreloadInitializer @Inject constructor(
+    private val predictiveModelPreloader: PredictiveModelPreloader
+) : AppInitializer {
     override val priority: Priority = Priority.LAZY
     override val isBlocking: Boolean = false
     
     override fun initialize(context: Context) {
-        Timber.tag("NOUS.Init").d("Preload initializer ran (no-op until :feature:llm wires)")
-        // TODO: When :feature:llm provides PredictiveModelPreloader via Hilt,
-        // inject it here and call checkAndPreload().
+        Timber.tag("NOUS.Init").d("Preload initializer ran (scheduling preload)")
+        predictiveModelPreloader.schedulePreload(context)
     }
 }
