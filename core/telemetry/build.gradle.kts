@@ -16,3 +16,8 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-api:1.42.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.42.0")
 }
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20231013")
+}
