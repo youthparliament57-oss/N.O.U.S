@@ -2,6 +2,7 @@
 plugins {
     id("nous.android.library")
     id("nous.android.hilt")
+    id("nous.android.test")
 }
 
 android {
