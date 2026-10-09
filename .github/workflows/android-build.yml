@@ -59,7 +59,6 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: 'platforms;android-36' 'build-tools;34.0.0' 'ndk;27.1.12297006'
-          accept-android-sdk-licenses: true
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
