@@ -15,4 +15,6 @@ dependencies {
     implementation("androidx.tracing:tracing-ktx:1.2.0")
     implementation("io.opentelemetry:opentelemetry-api:1.42.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.42.0")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
 }
