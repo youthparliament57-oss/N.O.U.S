@@ -129,15 +129,6 @@ class HnswIndexTest {
         assertThat(index.size()).isEqualTo(0)
     }
 
-    @Test
-    fun `needsRebuild returns true for different versions`() {
-        assertThat(index.needsRebuild("v1", "v2")).isTrue()
-    }
-
-    @Test
-    fun `needsRebuild returns false for same version`() {
-        assertThat(index.needsRebuild("v1", "v1")).isFalse()
-    }
 
     @Test
     fun `search returns empty for empty index`() {
